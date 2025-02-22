@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate strong and secure passwords with our easy-to-use password generator. Customize your password length and character types for better security.">
+    <meta name="keywords" content="password generator, secure passwords, strong passwords, random password generator, online password tool">
+    <meta name="author" content="Karan">
+    <title>Locksmith - Password Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #toast {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: top 0.5s ease-in-out;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            cursor: pointer;
+        }
+
+        input[type="range"]::-ms-thumb {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body class="flex justify-center items-center min-h-screen bg-gray-900 text-white">
+    <div id="toast" class="hidden">Copied</div>
+    <div class="w-full max-w-md bg-gray-800 p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-bold text-center">Password Generator</h2>
+        <div class="relative mt-4">
+            <input type="text" id="output" class="w-full p-2 text-lg font-bold bg-gray-700 rounded select-all cursor-pointer" readonly>
+            <span id="strength" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-sm font-semibold"></span>
+        </div>
+        <div class="mt-4">
+            <label class="block">Password Length: <span id="lengthValue">12</span></label>
+            <input type="range" id="length" min="4" max="20" value="12" class="w-full mt-2">
+        </div>
+        <div class="mt-4 grid grid-cols-2 gap-2">
+            <label><input type="checkbox" id="upper" checked> Uppercase</label>
+            <label><input type="checkbox" id="lower" checked> Lowercase</label>
+            <label><input type="checkbox" id="digits" checked> Numbers</label>
+            <label><input type="checkbox" id="special" checked> Special Characters</label>
+        </div>
+        <button id="generate" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mt-4">Generate</button>
+    </div>
+    <footer class="mt-4 text-center text-gray-500" id="footer"></footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function () {
+            document.getElementById('generate').click();
+        });
+
+        document.getElementById('length').addEventListener('input', function () {
+            document.getElementById('lengthValue').textContent = this.value;
+        });
+
+        document.getElementById('generate').addEventListener('click', function () {
+            scrambleText(document.getElementById('output'), () => {
+                const options = {
+                    length: parseInt(document.getElementById('length').value),
+                    hasUpperCase: document.getElementById('upper').checked,
+                    hasLowerCase: document.getElementById('lower').checked,
+                    hasDigits: document.getElementById('digits').checked,
+                    hasCharacters: document.getElementById('special').checked
+                };
+
+                const result = GenerateRandomPassword(options);
+                document.getElementById('output').value = result.value || "Select at least one option";
+                document.getElementById('strength').textContent = result.strength[0];
+                document.getElementById('strength').style.color = result.strength[1];
+            });
+        });
+
+        document.getElementById('output').addEventListener('click', function () {
+            navigator.clipboard.writeText(this.value);
+            showToast("Copied");
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            toast.style.top = '20px';
+            setTimeout(() => {
+                toast.style.top = '-50px';
+                setTimeout(() => toast.classList.add('hidden'), 500);
+            }, 2000);
+        }
+
+        function GenerateRandomPassword(options) {
+            let charSet = "";
+            if (options.hasUpperCase) charSet += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            if (options.hasLowerCase) charSet += "abcdefghijklmnopqrstuvwxyz";
+            if (options.hasDigits) charSet += "0123456789";
+            if (options.hasCharacters) charSet += "!@#$%^&*()_+[]{}|;:,.<>?";
+            if (charSet === "") return "";
+
+            let password = "";
+            for (let i = 0; i < options.length; i++) {
+                password += charSet.charAt(Math.floor(Math.random() * charSet.length));
+            }
+
+            return { value: password, strength: evaluatePasswordStrength(password) };
+        }
+
+        function evaluatePasswordStrength(password) {
+            let strength = "Very weak", color = "#FF4C4C";
+            let length = password.length;
+
+            if (length >= 12) { strength = "Very strong"; color = "#388E3C"; }
+            else if (length >= 10) { strength = "Strong"; color = "#4CAF50"; }
+            else if (length >= 8) { strength = "Good"; color = "#A5D6A7"; }
+            else if (length >= 5) { strength = "Weak"; color = "#FF9F00"; }
+
+            return [strength, color];
+        }
+
+        function scrambleText(element, callback) {
+            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?";
+            let iterations = 10;
+            let scrambleInterval = setInterval(() => {
+                element.value = Array.from({ length: element.value.length || 12 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+                iterations--;
+                if (iterations <= 0) {
+                    clearInterval(scrambleInterval);
+                    callback();
+                }
+            }, 50);
+        }
+
+        const portfolioUrl = "https://karanugale.github.io/debugwithkaran/";
+
+        function GetFooterMessage() {
+            const footerMessages = [
+                `<p>Crafted with 🚀 and ☕ by <a href="${portfolioUrl}" target="_blank">Karan</a>.</p>`,
+                `<p>Handmade in the digital forge by <a href="${portfolioUrl}" target="_blank">Karan</a>. 🔥</p>`,
+                `<p>Made with 🐞, fixed with ❤️ by <a href="${portfolioUrl}" target="_blank">Karan</a>.</p>`,
+                `<p>Assembled with 🤔 and compiled with 💻 by <a href="${portfolioUrl}" target="_blank">Karan</a>.</p>`,
+                `<p>From my ⌨️ to your 📺 by <a href="${portfolioUrl}" target="_blank">Karan</a>.</p>`
+            ];
+
+            return footerMessages[Math.floor(Math.random() * footerMessages.length)];
+        }
+        document.getElementById("footer").innerHTML = GetFooterMessage();
+    </script>
+</body>
+
+</html>
